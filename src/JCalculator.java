@@ -13,8 +13,7 @@ import javax.swing.border.EmptyBorder;
 //Description: This program will implement an integer calculator GUI.
 //
 
-
-public class JCalculator implements ActionListener, KeyListener {
+public class JCalculator implements ActionListener {
 
     private JFrame jfrm;
     private JPanel displaySection;
@@ -22,12 +21,13 @@ public class JCalculator implements ActionListener, KeyListener {
     private JLabel display;
     private JButton[] button = new JButton[16];
     private JRootPane rootPane;
-    private final Set<Character> pressed = new HashSet<Character>();
+    private final Set<Integer> pressed = new HashSet<Integer>();
     private String operand1="";
     private String operator = "";
     private String operand2="";
     //if true op1, false op2
     private boolean operandSwitch = true;
+    private boolean buttonOn = true;
 
     private  JCalculator(){
         jfrm = new JFrame("Calculator");
@@ -61,18 +61,48 @@ public class JCalculator implements ActionListener, KeyListener {
             buttonSection.add(button[i]);
         }
 
-        //set = as default button
-        rootPane = jfrm.getRootPane();
-        rootPane.setDefaultButton(button[14]);
-
         //set JCalculator.png as program icon
 // ********change path once you submit
         ImageIcon programIcon = new ImageIcon("C:\\Users\\antho\\Documents\\IntelliJ_GitHub\\CS245Calculator\\src\\JCalculator.png");
         jfrm.setIconImage(programIcon.getImage());
 
         jfrm.add(displaySection, BorderLayout.NORTH);
-        jfrm.add(buttonSection);
+
         jfrm.setLocationRelativeTo(null);
+
+        //set = as default button
+        rootPane = jfrm.getRootPane();
+        rootPane.setDefaultButton(button[14]);
+
+        //set mnemonic
+        button[12].setMnemonic('c');
+
+
+        jfrm.add(buttonSection);
+        //add keylistener
+        buttonSection.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                //not needed
+            }
+            @Override
+            public void keyPressed(KeyEvent e) {
+                pressed.add(e.getKeyCode());
+                System.out.println(e.getKeyCode());
+
+                if(pressed.size() > 1){
+                    System.out.println("hit it");
+
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                pressed.remove(e.getKeyChar());
+            }
+        });
+
+        buttonSection.setFocusable(true);
+        buttonSection.requestFocusInWindow();
     }
 
     //if true op1, false op2
@@ -86,10 +116,7 @@ public class JCalculator implements ActionListener, KeyListener {
             operator = value;
             //System.out.println(operandSwitch);
         } else if (value.equals("=")){
-            int sum = operation();
-            System.out.println(sum + " = " + operand1 + " " + operator + " " + operand2);
-            operand1 = Integer.toString(sum);
-            printToDisplay(operand1);
+            printToDisplay(getAnswer());
         } else if(operand1.length() < 10 && operandSwitch==true) {
             operand1 += value;
             printToDisplay(operand1);
@@ -97,14 +124,17 @@ public class JCalculator implements ActionListener, KeyListener {
             operand2 += value;
             printToDisplay(operand2);
         }
-
     }
-
-
 
     private int operation(){
         switch (operator) {
             case "/":
+                try{
+                    return Integer.parseInt(operand1) / Integer.parseInt(operand2);
+                } catch (ArithmeticException a){
+                    printToDisplay("Div by 0");
+                    disableButtons();
+                }
                 return Integer.parseInt(operand1) / Integer.parseInt(operand2);
             case "*":
                 return Integer.parseInt(operand1) * Integer.parseInt(operand2);
@@ -113,12 +143,37 @@ public class JCalculator implements ActionListener, KeyListener {
             case "+":
                 return Integer.parseInt(operand1) + Integer.parseInt(operand2);
             default:
-                System.out.println("Error in switch statment");
+                System.out.println("Error in switch statement");
                 return 0;
         }
     }
 
+    private String getAnswer() {
+        int value = operation();
+        System.out.println(value + " = " + operand1 + " " + operator + " " + operand2);
+        resetCalculator();
+        operand1 = Integer.toString(value);
+        return operand1;
+    }
+
+    private void disableButtons() {
+        buttonOn = false;
+        for(int i = 0; i < button.length; i++) {
+            if(i != 12)
+                button[i].setEnabled(false);
+        }
+    }
+
+    private void enableButtons() {
+        buttonOn = true;
+        for(int i = 0; i < button.length; i++)
+            button[i].setEnabled(true);
+    }
+
     private void resetCalculator() {
+        if(buttonOn == false)
+            enableButtons();
+
         operand1 = "";
         operator = "";
         operand2 = "";
@@ -128,24 +183,6 @@ public class JCalculator implements ActionListener, KeyListener {
 
     private void printToDisplay(String value) {
         display.setText("<html><span style='font-size:40px'>" + value + "</span></html>");
-    }
-
-    @Override
-    public void keyTyped(KeyEvent e) {
-        //not needed
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-        pressed.add(e.getKeyChar());
-        if(pressed.size() > 1){
-            //do shit
-        }
-    }
-
-    @Override
-    public void keyReleased(KeyEvent e) {
-        pressed.remove(e.getKeyChar());
     }
 
     public static void main(String args[]){
