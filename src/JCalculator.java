@@ -1,9 +1,9 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 
 //
 //Name:       Vu, Anthony
@@ -14,7 +14,7 @@ import javax.swing.border.LineBorder;
 //
 
 
-public class JCalculator implements ActionListener {
+public class JCalculator implements ActionListener, KeyListener {
 
     private JFrame jfrm;
     private JPanel displaySection;
@@ -22,6 +22,12 @@ public class JCalculator implements ActionListener {
     private JLabel display;
     private JButton[] button = new JButton[16];
     private JRootPane rootPane;
+    private final Set<Character> pressed = new HashSet<Character>();
+    private String operand1="";
+    private String operator = "";
+    private String operand2="";
+    //if true op1, false op2
+    private boolean operandSwitch = true;
 
     private  JCalculator(){
         jfrm = new JFrame("Calculator");
@@ -44,7 +50,8 @@ public class JCalculator implements ActionListener {
                               "1","2","3","-",
                               "c","0","=","+"};
 
-        display = new JLabel("<html><span style='font-size:40px'>Something</span></html>");
+        display = new JLabel();
+        printToDisplay("0");
         display.setHorizontalAlignment(JLabel.RIGHT);
         displaySection.add(display);
 
@@ -68,8 +75,77 @@ public class JCalculator implements ActionListener {
         jfrm.setLocationRelativeTo(null);
     }
 
+    //if true op1, false op2
     public void actionPerformed(ActionEvent ae) {
+        String value = ae.getActionCommand();
+        if(value.equals("c")) {
+            resetCalculator();
+        } else if(value.equals("/") || value.equals("*") ||
+           value.equals("-") ||value.equals("+")) {
+            operandSwitch = false;
+            operator = value;
+            //System.out.println(operandSwitch);
+        } else if (value.equals("=")){
+            int sum = operation();
+            System.out.println(sum + " = " + operand1 + " " + operator + " " + operand2);
+            operand1 = Integer.toString(sum);
+            printToDisplay(operand1);
+        } else if(operand1.length() < 10 && operandSwitch==true) {
+            operand1 += value;
+            printToDisplay(operand1);
+        } else if(operand2.length() < 10 && operandSwitch==false) {
+            operand2 += value;
+            printToDisplay(operand2);
+        }
 
+    }
+
+
+
+    private int operation(){
+        switch (operator) {
+            case "/":
+                return Integer.parseInt(operand1) / Integer.parseInt(operand2);
+            case "*":
+                return Integer.parseInt(operand1) * Integer.parseInt(operand2);
+            case "-":
+                return Integer.parseInt(operand1) - Integer.parseInt(operand2);
+            case "+":
+                return Integer.parseInt(operand1) + Integer.parseInt(operand2);
+            default:
+                System.out.println("Error in switch statment");
+                return 0;
+        }
+    }
+
+    private void resetCalculator() {
+        operand1 = "";
+        operator = "";
+        operand2 = "";
+        operandSwitch = true;
+        printToDisplay("0");
+    }
+
+    private void printToDisplay(String value) {
+        display.setText("<html><span style='font-size:40px'>" + value + "</span></html>");
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        //not needed
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        pressed.add(e.getKeyChar());
+        if(pressed.size() > 1){
+            //do shit
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        pressed.remove(e.getKeyChar());
     }
 
     public static void main(String args[]){
