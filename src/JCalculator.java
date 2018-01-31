@@ -99,7 +99,8 @@ public class JCalculator implements ActionListener, KeyListener {
         //System.out.println(e.getKeyCode());
         if(pressed.size() > 1) {
             //System.out.println("hit it");
-            butCombo = true;
+            if(pressed.contains(17) && pressed.contains(16))
+                butCombo = true;
         }
     }
 
