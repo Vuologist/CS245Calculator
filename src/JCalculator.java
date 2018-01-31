@@ -13,7 +13,7 @@ import javax.swing.border.EmptyBorder;
 //Description: This program will implement an integer calculator GUI.
 //
 
-public class JCalculator implements ActionListener {
+public class JCalculator implements ActionListener, KeyListener {
 
     private JFrame jfrm;
     private JPanel displaySection;
@@ -28,6 +28,7 @@ public class JCalculator implements ActionListener {
     //if true op1, false op2
     private boolean operandSwitch = true;
     private boolean buttonOn = true;
+    private boolean butCombo = false;
 
     private  JCalculator(){
         jfrm = new JFrame("Calculator");
@@ -67,7 +68,7 @@ public class JCalculator implements ActionListener {
         jfrm.setIconImage(programIcon.getImage());
 
         jfrm.add(displaySection, BorderLayout.NORTH);
-
+        jfrm.add(buttonSection);
         jfrm.setLocationRelativeTo(null);
 
         //set = as default button
@@ -78,37 +79,46 @@ public class JCalculator implements ActionListener {
         button[12].setMnemonic('c');
 
 
-        jfrm.add(buttonSection);
-        //add keylistener
-        buttonSection.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                //not needed
-            }
-            @Override
-            public void keyPressed(KeyEvent e) {
-                pressed.add(e.getKeyCode());
-                System.out.println(e.getKeyCode());
-
-                if(pressed.size() > 1){
-                    System.out.println("hit it");
-
-                }
-            }
-            @Override
-            public void keyReleased(KeyEvent e) {
-                pressed.remove(e.getKeyChar());
-            }
-        });
-
+        buttonSection.addKeyListener(this);
         buttonSection.setFocusable(true);
         buttonSection.requestFocusInWindow();
+
+        //solve nonfocusable issue
+        for(int i = 0; i < buttonSym.length; i++) {
+            button[i].setFocusable(false);
+        }
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        pressed.add(e.getKeyCode());
+        //System.out.println(e.getKeyCode());
+        if(pressed.size() > 1) {
+            //System.out.println("hit it");
+            butCombo = true;
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+            pressed.remove(e.getKeyCode());
+            if(pressed.size() == 0){
+                //System.out.println("removed");
+            }
     }
 
     //if true op1, false op2
     public void actionPerformed(ActionEvent ae) {
         String value = ae.getActionCommand();
-        if(value.equals("c")) {
+        if (value.equals("c") && butCombo==true) {
+            printToDisplay("(c) 2018 Anthony Vu");
+            butCombo=false;
+            disableButtons();
+        } else if(value.equals("c")) {
             resetCalculator();
         } else if(value.equals("/") || value.equals("*") ||
            value.equals("-") ||value.equals("+")) {
@@ -126,33 +136,38 @@ public class JCalculator implements ActionListener {
         }
     }
 
-    private int operation(){
+    private Long operation(){
         switch (operator) {
             case "/":
                 try{
-                    return Integer.parseInt(operand1) / Integer.parseInt(operand2);
+                    System.out.println(operand1);
+                    return Long.valueOf(operand1) / Long.valueOf(operand2);
                 } catch (ArithmeticException a){
                     printToDisplay("Div by 0");
                     disableButtons();
                 }
-                return Integer.parseInt(operand1) / Integer.parseInt(operand2);
+                return Long.valueOf(operand1) / Long.valueOf(operand2);
             case "*":
-                return Integer.parseInt(operand1) * Integer.parseInt(operand2);
+                return Long.valueOf(operand1) * Long.valueOf(operand2);
             case "-":
-                return Integer.parseInt(operand1) - Integer.parseInt(operand2);
+                return Long.valueOf(operand1) - Long.valueOf(operand2);
             case "+":
-                return Integer.parseInt(operand1) + Integer.parseInt(operand2);
+                return Long.valueOf(operand1) + Long.valueOf(operand2);
             default:
                 System.out.println("Error in switch statement");
-                return 0;
+                return Long.valueOf(0);
         }
     }
 
     private String getAnswer() {
-        int value = operation();
+        Long value = operation();
         System.out.println(value + " = " + operand1 + " " + operator + " " + operand2);
         resetCalculator();
-        operand1 = Integer.toString(value);
+        operand1 = Long.toString(value);
+        if(operand1.length() > 10) {
+            disableButtons();
+            return "Overflow";
+        }
         return operand1;
     }
 
@@ -190,4 +205,5 @@ public class JCalculator implements ActionListener {
             public void run() {new JCalculator();}
         });
     }
+
 }
