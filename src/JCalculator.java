@@ -11,6 +11,8 @@ import javax.swing.border.EmptyBorder;
 //Course:     CS-245-01-w18
 //
 //Description: This program will implement an integer calculator GUI.
+//             Max input digit that will fit in the JLabel is 9 characters.
+//             Will detect overflow and divide by 0.
 //
 
 public class JCalculator implements ActionListener, KeyListener {
@@ -22,6 +24,7 @@ public class JCalculator implements ActionListener, KeyListener {
     private JButton[] button = new JButton[16];
     private JRootPane rootPane;
     private final Set<Integer> pressed = new HashSet<Integer>();
+    private String oldOperand1="";
     private String operand1="";
     private String operator = "";
     private String operand2="";
@@ -29,6 +32,7 @@ public class JCalculator implements ActionListener, KeyListener {
     private boolean operandSwitch = true;
     private boolean buttonOn = true;
     private boolean butCombo = false;
+    private boolean runAgain = false;
 
     private  JCalculator(){
         jfrm = new JFrame("Calculator");
@@ -63,8 +67,7 @@ public class JCalculator implements ActionListener, KeyListener {
         }
 
         //set JCalculator.png as program icon
-// ********change path once you submit
-        ImageIcon programIcon = new ImageIcon("C:\\Users\\antho\\Documents\\IntelliJ_GitHub\\CS245Calculator\\src\\JCalculator.png");
+        ImageIcon programIcon = new ImageIcon("JCalculator.png");
         jfrm.setIconImage(programIcon.getImage());
 
         jfrm.add(displaySection, BorderLayout.NORTH);
@@ -125,9 +128,15 @@ public class JCalculator implements ActionListener, KeyListener {
            value.equals("-") ||value.equals("+")) {
             operandSwitch = false;
             operator = value;
-            //System.out.println(operandSwitch);
+            if(runAgain == true && operand1.equals("")) {
+                operand1 = oldOperand1;
+            }
         } else if (value.equals("=")){
-            printToDisplay(getAnswer());
+            runAgain = true;
+            operandSwitch = true;
+            oldOperand1 = getAnswer();
+            printToDisplay(oldOperand1);
+            operand1 ="";
         } else if(operand1.length() < 10 && operandSwitch==true) {
             operand1 += value;
             printToDisplay(operand1);
@@ -138,6 +147,8 @@ public class JCalculator implements ActionListener, KeyListener {
     }
 
     private Long operation(){
+
+
         switch (operator) {
             case "/":
                 try{
@@ -146,8 +157,8 @@ public class JCalculator implements ActionListener, KeyListener {
                 } catch (ArithmeticException a){
                     printToDisplay("Div by 0");
                     disableButtons();
+                    return 0L;
                 }
-                return Long.valueOf(operand1) / Long.valueOf(operand2);
             case "*":
                 return Long.valueOf(operand1) * Long.valueOf(operand2);
             case "-":
@@ -156,7 +167,7 @@ public class JCalculator implements ActionListener, KeyListener {
                 return Long.valueOf(operand1) + Long.valueOf(operand2);
             default:
                 System.out.println("Error in switch statement");
-                return Long.valueOf(0);
+                return 0L;
         }
     }
 
